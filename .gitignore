@@ -1,0 +1,6 @@
+venv/
+wandb/
+src/wandb/
+__pycache__/
+*.pyc
+*.log

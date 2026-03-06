@@ -1,0 +1,37 @@
+program: train.py
+
+command:
+  - C:\Users\aniket\da6401_assignment_1\venv\Scripts\python
+  - ${program}
+  - ${args}
+
+method: random
+
+metric:
+  name: test_accuracy
+  goal: maximize
+
+parameters:
+
+  learning_rate:
+    distribution: log_uniform_values
+    min: 0.0001
+    max: 0.1
+
+  optimizer:
+    values: ["sgd", "momentum", "rmsprop", "adam", "nadam"]
+
+  weight_decay:
+    values: [0.0, 0.0001, 0.0005, 0.001]
+
+  activation:
+    values: ["relu", "tanh", "sigmoid"]
+
+  batch_size:
+    values: [32, 64, 128]
+
+  hidden_size:
+    values: [128, 256, 512]
+
+  num_layers:
+    values: [1, 2, 3]
