@@ -70,10 +70,7 @@ def parse_arguments():
     return parser.parse_args()
 
 
-"""
-Use tensorflow.keras since standalone keras may not exist in grader
-"""
-from tensorflow.keras.datasets import mnist, fashion_mnist
+from keras.datasets import mnist, fashion_mnist
 
 
 def log_sample_images(X, y):
@@ -102,7 +99,9 @@ def log_sample_images(X, y):
 def main():
 
     args = parse_arguments()
-
+    # Ensure hidden_size length matches num_layers
+    if len(args.hidden_size) == 1 and args.num_layers > 1:
+        args.hidden_size = args.hidden_size * args.num_layers
     # Initialize wandb only if available
     if WANDB_AVAILABLE:
         wandb.init(
