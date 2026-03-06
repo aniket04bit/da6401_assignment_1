@@ -121,18 +121,16 @@ class NeuralNetwork:
             dZ = layer.backward(dZ)
 
             if hasattr(layer, "W"):
-                grad_W = layer.grad_W.copy()
-                grad_b = layer.grad_b.copy()
+                grad_W_list.append(layer.grad_W.copy())
+                grad_b_list.append(layer.grad_b.copy())
 
-                # apply L2 regularization if enabled
-                if self.weight_decay > 0:
-                    grad_W += self.weight_decay * layer.W
+        # create object arrays (required for autograder)
+        grad_Ws = np.empty(len(grad_W_list), dtype=object)
+        grad_bs = np.empty(len(grad_b_list), dtype=object)
 
-                grad_W_list.append(grad_W)
-                grad_b_list.append(grad_b)
-
-        grad_Ws = np.array(grad_W_list, dtype=object)
-        grad_bs = np.array(grad_b_list, dtype=object)
+        for i in range(len(grad_W_list)):
+            grad_Ws[i] = grad_W_list[i]
+            grad_bs[i] = grad_b_list[i]
 
         return grad_Ws, grad_bs
     
