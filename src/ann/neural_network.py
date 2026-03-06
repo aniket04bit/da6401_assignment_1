@@ -106,9 +106,6 @@ class NeuralNetwork:
     
     def backward(self, y_true, logits):
 
-        # compute loss
-        loss = self.loss_fn.forward(logits, y_true)
-
         # gradient of loss w.r.t logits
         dZ = self.loss_fn.backward()
 
