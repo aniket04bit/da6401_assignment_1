@@ -106,19 +106,41 @@ class NeuralNetwork:
     
     def backward(self, y_true, logits):
 
+        # compute loss
         loss = self.loss_fn.forward(logits, y_true)
 
+        # gradient of loss w.r.t logits
         dZ = self.loss_fn.backward()
 
-        # Reverse order for backprop
-        for layer in reversed(self.layers):
-            dZ = layer.backward(dZ)
-            
-        # Apply L2 regularization to weight gradients
-        if hasattr(layer, "W") and self.weight_decay > 0:
-            layer.grad_W += self.weight_decay * layer.W
+        grad_W_list = []
+        grad_b_list = []
 
-        return loss
+        # backprop through layers
+        for layer in reversed(self.layers):
+
+            dZ = layer.backward(dZ)
+
+            # collect gradients only from linear layers
+            if hasattr(layer, "W"):
+                grad_W = layer.grad_W
+                grad_b = layer.grad_b
+
+                # apply L2 regularization
+                if self.weight_decay > 0:
+                    grad_W += self.weight_decay * layer.W
+
+                grad_W_list.append(grad_W)
+                grad_b_list.append(grad_b)
+
+        # convert to numpy object arrays (required by autograder)
+        grad_Ws = np.empty(len(grad_W_list), dtype=object)
+        grad_bs = np.empty(len(grad_b_list), dtype=object)
+
+        for i, (gw, gb) in enumerate(zip(grad_W_list, grad_b_list)):
+            grad_Ws[i] = gw
+            grad_bs[i] = gb
+
+        return grad_Ws, grad_bs
     
     def update_weights(self):
         self.optimizer.update(self.layers)
@@ -252,3 +274,25 @@ class NeuralNetwork:
                 layer_count += 1
 
         print(f"Model loaded from {path}")
+        
+    def get_weights(self):
+        d = {}
+        layer_idx = 0
+
+        for layer in self.layers:
+            if hasattr(layer, "W"):
+                d[f"W{layer_idx}"] = layer.W.copy()
+                d[f"b{layer_idx}"] = layer.b.copy()
+                layer_idx += 1
+
+        return d
+
+
+    def set_weights(self, weight_dict):
+        layer_idx = 0
+
+        for layer in self.layers:
+            if hasattr(layer, "W"):
+                layer.W = weight_dict[f"W{layer_idx}"].copy()
+                layer.b = weight_dict[f"b{layer_idx}"].copy()
+                layer_idx += 1
