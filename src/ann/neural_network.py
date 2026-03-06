@@ -1,3 +1,4 @@
+
 """
 Main Neural Network Model class
 Handles forward and backward propagation loops
@@ -23,7 +24,7 @@ class NeuralNetwork:
 
         # ensure hidden_sizes is a list of integers
         if isinstance(hidden_sizes, int):
-            hidden_sizes = [hidden_sizes] * cli_args.num_layers
+            hidden_sizes = [hidden_sizes] * num_layers
             
         activation_name = cli_args.activation
 
@@ -106,8 +107,10 @@ class NeuralNetwork:
     
     def backward(self, y_true, logits):
 
+        # compute loss (needed to store probs and y inside loss_fn)
         self.loss_fn.forward(logits, y_true)
-        
+
+        # gradient of loss w.r.t logits
         dZ = self.loss_fn.backward()
 
         grad_W_list = []
@@ -133,6 +136,37 @@ class NeuralNetwork:
     def update_weights(self):
         self.optimizer.update(self.layers)
     
+    # def train(self, X_train, y_train, epochs, batch_size):
+
+    #     n = X_train.shape[0]
+
+    #     for epoch in range(epochs):
+
+    #         # Shuffle at start of each epoch
+    #         indices = np.random.permutation(n)
+    #         X_train = X_train[indices]
+    #         y_train = y_train[indices]
+
+    #         epoch_loss = 0.0
+    #         num_batches = 0
+
+    #         for i in range(0, n, batch_size):
+
+    #             X_batch = X_train[i:i+batch_size]
+    #             y_batch = y_train[i:i+batch_size]
+
+    #             logits = self.forward(X_batch)
+    #             loss = self.backward(y_batch, logits)
+
+    #             self.update_weights()
+
+    #             # Accumulate loss
+    #             epoch_loss += loss
+    #             num_batches += 1
+
+    #         avg_loss = epoch_loss / num_batches
+
+    #         print(f"Epoch {epoch+1}, Avg Loss: {avg_loss}")
     
     def train(self, X_train, y_train, epochs, batch_size):
 
@@ -155,8 +189,7 @@ class NeuralNetwork:
                 y_batch = y_train[i:i+batch_size]
 
                 logits = self.forward(X_batch)
-                loss = self.loss_fn.forward(logits, y_batch)
-                grad_Ws, grad_bs = self.backward(y_batch, logits)
+                loss = self.backward(y_batch, logits)
                 
                 # Log gradient norm of first hidden layer
                 for layer in self.layers:
@@ -164,26 +197,17 @@ class NeuralNetwork:
                         grad_norm = np.linalg.norm(layer.grad_W)
                         break
 
-                try:
-                    wandb.log({"grad_norm_layer1": grad_norm})
-                except:
-                    pass
+                wandb.log({"grad_norm_layer1": grad_norm})
                 
                 first_linear = None
                 for layer in self.layers:
-                    if hasattr(layer, "grad_W"):
+                    if hasattr(layer, "grad_W"):   # first linear layer
                         first_linear = layer
                         break
 
-                if first_linear is not None:
-                    num_neurons = first_linear.grad_W.shape[1]
-
-                    for neuron in range(min(5, num_neurons)):
-                        grad_norm = np.linalg.norm(first_linear.grad_W[:, neuron])
-                        try:
-                            wandb.log({f"neuron_{neuron}_grad": grad_norm})
-                        except:
-                            pass
+                for neuron in range(5):  # log first 5 neurons
+                    grad_norm = np.linalg.norm(first_linear.grad_W[:, neuron])
+                    wandb.log({f"neuron_{neuron}_grad": grad_norm})
                     
                 self.update_weights()
 

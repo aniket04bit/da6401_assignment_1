@@ -7,14 +7,7 @@ print("DEBUG: train.py loaded")
 import argparse
 import json
 import os
-import numpy as np
-
-# Safe wandb import (grader may not have wandb)
-try:
-    import wandb
-    WANDB_AVAILABLE = True
-except:
-    WANDB_AVAILABLE = False
+import wandb
 
 
 def parse_arguments():
@@ -51,10 +44,11 @@ def parse_arguments():
     parser.add_argument('--optimizer', type=str, default='sgd',
                         choices=['sgd', 'momentum', 'nag', 'rmsprop', 'adam', 'nadam'])
 
+    #parser.add_argument('--hidden_size', type=int, nargs='+', default=[128, 128])
+    parser.add_argument('--hidden_size', type=int, default=128)
+    
     parser.add_argument('--num_layers', type=int, default=2)
-
-    parser.add_argument('--hidden_size', type=int, nargs='+', default=[128])
-
+    
     parser.add_argument('--activation', type=str, default='relu',
                         choices=['relu', 'sigmoid', 'tanh'])
 
@@ -70,21 +64,28 @@ def parse_arguments():
     return parser.parse_args()
 
 
+"""
+The original implementation imported the datasets from
+`tensorflow.keras.datasets`.  The project's `requirements.txt` does not
+specify `tensorflow` at all – only `keras` – and without a full
+TensorFlow installation the import cannot be resolved.  To keep the
+dependencies light and to match what's actually installed we simply
+import directly from the standalone `keras` package instead.
+
+This also makes the code work with the pip-installed `keras` module,
+which provides the same `mnist`/`fashion_mnist` loaders.
+"""
 from keras.datasets import mnist, fashion_mnist
+import numpy as np
 
 
 def log_sample_images(X, y):
-
-    if not WANDB_AVAILABLE:
-        return
-
     table = wandb.Table(columns=["image", "label"])
 
     class_counts = {i: 0 for i in range(10)}
 
     for i in range(len(X)):
         label = y[i]
-
         if class_counts[label] < 5:
             image = X[i]
             table.add_data(wandb.Image(image), label)
@@ -99,29 +100,29 @@ def log_sample_images(X, y):
 def main():
 
     args = parse_arguments()
-    # Ensure hidden_size length matches num_layers
-    if len(args.hidden_size) == 1 and args.num_layers > 1:
-        args.hidden_size = args.hidden_size * args.num_layers
-    # Initialize wandb only if available
-    if WANDB_AVAILABLE:
-        wandb.init(
-            project=args.wandb_project,
-            config=vars(args)
-        )
-        config = wandb.config
 
-        # Override args from sweep
-        args.learning_rate = config.learning_rate
-        args.optimizer = config.optimizer
-        args.weight_decay = config.weight_decay
-        args.activation = config.activation
-        args.batch_size = config.batch_size
-        args.hidden_size = config.hidden_size
+    wandb.init(
+        project=args.wandb_project,
+        config=vars(args)
+    )
 
-    # Ensure hidden_size is always list
-    if isinstance(args.hidden_size, int):
-        args.hidden_size = [args.hidden_size]
+    config = wandb.config
 
+    # Override args from sweep
+    args.learning_rate = config.learning_rate
+    args.optimizer = config.optimizer
+    args.weight_decay = config.weight_decay
+    args.activation = config.activation
+    args.batch_size = config.batch_size
+    args.hidden_size = config.hidden_size
+
+    # Always parse hidden_size safely
+    if isinstance(args.hidden_size, str):
+        args.hidden_size = [int(x) for x in args.hidden_size.split(",")]
+
+    
+    #args.num_layers = len(args.hidden_size)
+    
     # Load dataset
     if args.dataset == 'mnist':
         (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -144,30 +145,27 @@ def main():
     history = model.train(X_train, y_train, args.epochs, args.batch_size)
 
     # Log loss
-    if WANDB_AVAILABLE:
-        for epoch, loss in enumerate(history):
-            wandb.log({
-                "epoch": epoch + 1,
-                "train_loss": loss
-            })
+    for epoch, loss in enumerate(history):
+        wandb.log({
+            "epoch": epoch + 1,
+            "train_loss": loss
+        })
 
     # Evaluate
     train_acc = model.evaluate(X_train, y_train)
     test_acc = model.evaluate(X_test, y_test)
 
-    if WANDB_AVAILABLE:
-        wandb.log({
-            "train_accuracy": train_acc,
-            "test_accuracy": test_acc
-        })
+    wandb.log({
+        "train_accuracy": train_acc,
+        "test_accuracy": test_acc
+    })
 
     print(f"Train Accuracy: {train_acc}")
     print(f"Test Accuracy: {test_acc}")
 
     model.save_model(args.model_save_path)
 
-    if WANDB_AVAILABLE:
-        wandb.finish()
+    wandb.finish()
 
 
 if __name__ == '__main__':
