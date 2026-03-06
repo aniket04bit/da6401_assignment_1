@@ -4,6 +4,7 @@ Handles forward and backward propagation loops
 """
 import os
 import numpy as np
+import wandb
 from ann.neural_layer import NeuralLayer
 from ann.activations import ReLU, Sigmoid, Tanh
 from ann.objective_functions import CrossEntropy, MSE
