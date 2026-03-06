@@ -116,7 +116,7 @@ def main():
     args.batch_size = config.batch_size
     args.hidden_size = config.hidden_size
 
-    # 🔥 Always parse hidden_size safely
+    # Always parse hidden_size safely
     if isinstance(args.hidden_size, str):
         args.hidden_size = [int(x) for x in args.hidden_size.split(",")]
 

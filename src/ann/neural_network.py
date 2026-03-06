@@ -18,8 +18,13 @@ class NeuralNetwork:
         self.layers = []
         self.weight_decay = cli_args.weight_decay
         input_size = 784
-        hidden_sizes = [cli_args.hidden_size] * cli_args.num_layers
-        num_layers = cli_args.num_layers    
+        num_layers = cli_args.num_layers
+        hidden_sizes = cli_args.hidden_size
+
+        # ensure hidden_sizes is a list of integers
+        if isinstance(hidden_sizes, int):
+            hidden_sizes = [hidden_sizes] * num_layers
+            
         activation_name = cli_args.activation
 
         # Choose activation
