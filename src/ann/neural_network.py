@@ -106,8 +106,6 @@ class NeuralNetwork:
     
     def backward(self, y_true, logits):
 
-        loss = self.loss_fn.forward(logits, y_true)
-
         dZ = self.loss_fn.backward()
 
         grad_W_list = []
@@ -164,7 +162,10 @@ class NeuralNetwork:
                         grad_norm = np.linalg.norm(layer.grad_W)
                         break
 
-                wandb.log({"grad_norm_layer1": grad_norm})
+                try:
+                    wandb.log({"grad_norm_layer1": grad_norm})
+                except:
+                    pass
                 
                 first_linear = None
                 for layer in self.layers:
@@ -177,7 +178,10 @@ class NeuralNetwork:
 
                     for neuron in range(min(5, num_neurons)):
                         grad_norm = np.linalg.norm(first_linear.grad_W[:, neuron])
-                        wandb.log({f"neuron_{neuron}_grad": grad_norm})
+                        try:
+                            wandb.log({f"neuron_{neuron}_grad": grad_norm})
+                        except:
+                            pass
                     
                 self.update_weights()
 
