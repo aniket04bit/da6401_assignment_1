@@ -128,7 +128,7 @@ class NeuralNetwork:
             grad_Ws[i] = grad_W_list[i]
             grad_bs[i] = grad_b_list[i]
 
-        return loss, grad_Ws, grad_bs
+        return grad_Ws, grad_bs
         
     def update_weights(self):
         self.optimizer.update(self.layers)
@@ -155,7 +155,8 @@ class NeuralNetwork:
                 y_batch = y_train[i:i+batch_size]
 
                 logits = self.forward(X_batch)
-                loss, grad_Ws, grad_bs = self.backward(y_batch, logits)
+                loss = self.loss_fn.forward(logits, y_batch)
+                grad_Ws, grad_bs = self.backward(y_batch, logits)
                 
                 # Log gradient norm of first hidden layer
                 for layer in self.layers:
