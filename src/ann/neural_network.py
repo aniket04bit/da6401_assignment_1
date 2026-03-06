@@ -106,13 +106,15 @@ class NeuralNetwork:
     
     def backward(self, y_true, logits):
 
+        # compute loss (needed to store probs and y inside loss_fn)
+        self.loss_fn.forward(logits, y_true)
+
         # gradient of loss w.r.t logits
         dZ = self.loss_fn.backward()
 
         grad_W_list = []
         grad_b_list = []
 
-        # backprop through layers
         for layer in reversed(self.layers):
 
             dZ = layer.backward(dZ)
@@ -121,7 +123,6 @@ class NeuralNetwork:
                 grad_W_list.append(layer.grad_W.copy())
                 grad_b_list.append(layer.grad_b.copy())
 
-        # convert to object arrays
         grad_Ws = np.empty(len(grad_W_list), dtype=object)
         grad_bs = np.empty(len(grad_b_list), dtype=object)
 
@@ -130,7 +131,7 @@ class NeuralNetwork:
             grad_bs[i] = grad_b_list[i]
 
         return grad_Ws, grad_bs
-    
+        
     def update_weights(self):
         self.optimizer.update(self.layers)
     
