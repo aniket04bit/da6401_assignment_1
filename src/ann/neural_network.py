@@ -124,7 +124,7 @@ class NeuralNetwork:
                 grad_W_list.append(layer.grad_W.copy())
                 grad_b_list.append(layer.grad_b.copy())
 
-        # create object arrays (required for autograder)
+        # convert to object arrays
         grad_Ws = np.empty(len(grad_W_list), dtype=object)
         grad_bs = np.empty(len(grad_b_list), dtype=object)
 
