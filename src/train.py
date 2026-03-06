@@ -44,11 +44,10 @@ def parse_arguments():
     parser.add_argument('--optimizer', type=str, default='sgd',
                         choices=['sgd', 'momentum', 'nag', 'rmsprop', 'adam', 'nadam'])
 
-    #parser.add_argument('--hidden_size', type=int, nargs='+', default=[128, 128])
-    parser.add_argument('--hidden_size', type=int, default=128)
-    
     parser.add_argument('--num_layers', type=int, default=2)
-    
+
+    parser.add_argument('--hidden_size', type=int, nargs='+', default=[128])
+
     parser.add_argument('--activation', type=str, default='relu',
                         choices=['relu', 'sigmoid', 'tanh'])
 
