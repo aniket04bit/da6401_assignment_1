@@ -171,11 +171,11 @@ class NeuralNetwork:
     def train(self, X_train, y_train, epochs, batch_size):
 
         n = X_train.shape[0]
-        history = []   # store avg loss per epoch
+        history = []
 
         for epoch in range(epochs):
 
-            # Shuffle at start of each epoch
+            # shuffle dataset
             indices = np.random.permutation(n)
             X_train = X_train[indices]
             y_train = y_train[indices]
@@ -185,30 +185,41 @@ class NeuralNetwork:
 
             for i in range(0, n, batch_size):
 
-                X_batch = X_train[i:i+batch_size]
-                y_batch = y_train[i:i+batch_size]
+                X_batch = X_train[i:i + batch_size]
+                y_batch = y_train[i:i + batch_size]
 
+                # forward pass
                 logits = self.forward(X_batch)
-                loss = self.backward(y_batch, logits)
-                
-                # Log gradient norm of first hidden layer
-                for layer in self.layers:
-                    if hasattr(layer, "grad_W"):   # first linear layer
-                        grad_norm = np.linalg.norm(layer.grad_W)
-                        break
 
-                wandb.log({"grad_norm_layer1": grad_norm})
-                
+                # compute loss
+                loss = self.loss_fn.forward(y_batch, logits)
+
+                # backward pass
+                self.backward(y_batch, logits)
+
+                # -------- gradient logging --------
                 first_linear = None
+
                 for layer in self.layers:
-                    if hasattr(layer, "grad_W"):   # first linear layer
+                    if hasattr(layer, "grad_W"):
                         first_linear = layer
                         break
 
-                for neuron in range(5):  # log first 5 neurons
-                    grad_norm = np.linalg.norm(first_linear.grad_W[:, neuron])
-                    wandb.log({f"neuron_{neuron}_grad": grad_norm})
-                    
+                if first_linear is not None:
+
+                    # overall gradient norm
+                    grad_norm = np.linalg.norm(first_linear.grad_W)
+                    wandb.log({"grad_norm_layer1": grad_norm})
+
+                    # log first few neuron gradients safely
+                    num_neurons = first_linear.grad_W.shape[1]
+                    num_to_log = min(5, num_neurons)
+
+                    for neuron in range(num_to_log):
+                        neuron_grad = np.linalg.norm(first_linear.grad_W[:, neuron])
+                        wandb.log({f"neuron_{neuron}_grad": neuron_grad})
+
+                # update weights
                 self.update_weights()
 
                 epoch_loss += loss
