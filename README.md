@@ -110,6 +110,8 @@ W&B Report
 Complete experiment report for this assignment:
 https://wandb.ai/me22b104-iit-madras-foundation/da6401_assignment_1-src/reports/DA6401_report01--VmlldzoxNjEzMzYyNw
 
+GitHub Repo Link: https://github.com/aniket04bit/da6401_assignment_1
+
 Author
 
 Aniket Singh
