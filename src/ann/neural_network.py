@@ -136,38 +136,6 @@ class NeuralNetwork:
     def update_weights(self):
         self.optimizer.update(self.layers)
     
-    # def train(self, X_train, y_train, epochs, batch_size):
-
-    #     n = X_train.shape[0]
-
-    #     for epoch in range(epochs):
-
-    #         # Shuffle at start of each epoch
-    #         indices = np.random.permutation(n)
-    #         X_train = X_train[indices]
-    #         y_train = y_train[indices]
-
-    #         epoch_loss = 0.0
-    #         num_batches = 0
-
-    #         for i in range(0, n, batch_size):
-
-    #             X_batch = X_train[i:i+batch_size]
-    #             y_batch = y_train[i:i+batch_size]
-
-    #             logits = self.forward(X_batch)
-    #             loss = self.backward(y_batch, logits)
-
-    #             self.update_weights()
-
-    #             # Accumulate loss
-    #             epoch_loss += loss
-    #             num_batches += 1
-
-    #         avg_loss = epoch_loss / num_batches
-
-    #         print(f"Epoch {epoch+1}, Avg Loss: {avg_loss}")
-    
     def train(self, X_train, y_train, epochs, batch_size):
 
         n = X_train.shape[0]
