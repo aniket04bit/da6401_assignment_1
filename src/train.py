@@ -168,7 +168,10 @@ def main():
 
     print(f"Train Accuracy: {train_acc}")
     print(f"Test Accuracy: {test_acc}")
+    # Ensure directory exists
 
+    os.makedirs(os.path.dirname(args.model_save_path), exist_ok=True)
+    
     model.save_model(args.model_save_path)
 
     wandb.finish()
