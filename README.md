@@ -20,3 +20,6 @@ For questions or issues, please contact the teaching staff or post on the course
 ---
 
 Good luck with your implementation!
+
+#WandB Report link
+https://wandb.ai/me22b104-iit-madras-foundation/da6401_assignment_1-src/reports/DA6401_report01--VmlldzoxNjEzMzYyNw
