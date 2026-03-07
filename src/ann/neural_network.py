@@ -77,58 +77,37 @@ class NeuralNetwork:
         elif cli_args.optimizer == "nadam":
             self.optimizer = Nadam(cli_args.learning_rate)
     
-    # def forward(self, X):
+    def forward(self, X):
 
-    #     out = X
+        out = X
 
-    #     for i, layer in enumerate(self.layers):
-    #         out = layer.forward(out)
+        for i, layer in enumerate(self.layers):
+            out = layer.forward(out)
 
-    #         # Log hidden layer activations (only during training)
-    #         if hasattr(layer, "__class__"):
-    #             layer_name = layer.__class__.__name__
+            # Log hidden layer activations (only during training)
+            if hasattr(layer, "__class__"):
+                layer_name = layer.__class__.__name__
 
-    #             # Log only activation layers (ReLU or Tanh)
-    #             if layer_name in ["ReLU", "Tanh"]:
-    #                 zero_fraction = np.mean(out == 0)
-    #                 mean_activation = np.mean(out)
+                # Log only activation layers (ReLU or Tanh)
+                if layer_name in ["ReLU", "Tanh"]:
+                    zero_fraction = np.mean(out == 0)
+                    mean_activation = np.mean(out)
 
-    #                 try:
-    #                     import wandb
-    #                     if wandb.run is not None:
-    #                         wandb.log({
-    #                             f"{layer_name}_layer_{i}_zero_fraction": zero_fraction,
-    #                             f"{layer_name}_layer_{i}_mean": mean_activation
-    #                         })
-    #                 except:
-    #                     pass
+                    try:
+                        import wandb
+                        if wandb.run is not None:
+                            wandb.log({
+                                f"{layer_name}_layer_{i}_zero_fraction": zero_fraction,
+                                f"{layer_name}_layer_{i}_mean": mean_activation
+                            })
+                    except:
+                        pass
 
-    #     return out
+        return out
     
-    def forward(self, y_true, y_pred):
-
-        # Convert labels to one-hot if needed
-        if y_true.ndim == 1:
-            y_true = np.eye(y_pred.shape[1])[y_true]
-
-        # Numerically stable softmax
-        shifted_logits = y_pred - np.max(y_pred, axis=1, keepdims=True)
-        exp_logits = np.exp(shifted_logits)
-        self.probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
-
-        # Store for backward
-        self.y_true = y_true
-
-        B = y_true.shape[0]
-
-        # Cross entropy loss
-        loss = -np.sum(y_true * np.log(self.probs + 1e-12)) / B
-
-        return loss
-
     def backward(self, y_true, logits):
 
-        # compute loss (stores probs and y_true inside loss_fn)
+        # compute loss (needed to store probs and y inside loss_fn)
         self.loss_fn.forward(y_true, logits)
 
         # gradient of loss w.r.t logits

@@ -6,26 +6,27 @@ import numpy as np
 
 
 class CrossEntropy:
-    def forward(self, logits, y):
-        """
-        logits: (batch_size, num_classes)
-        y: one-hot encoded labels (batch_size, num_classes)
-        """
+    def forward(self, y_true, y_pred):
 
-        # Numerical stability
-        shifted_logits = logits - np.max(logits, axis=1, keepdims=True)
+        if y_true.ndim == 1:
+            y_true = np.eye(y_pred.shape[1])[y_true]
 
-        exp_vals = np.exp(shifted_logits)
-        self.probs = exp_vals / np.sum(exp_vals, axis=1, keepdims=True)
+        shifted = y_pred - np.max(y_pred, axis=1, keepdims=True)
+        exp_logits = np.exp(shifted)
 
-        self.y = y
+        self.probs = exp_logits / np.sum(exp_logits, axis=1, keepdims=True)
+        self.y_true = y_true
 
-        loss = -np.sum(y * np.log(self.probs + 1e-8)) / y.shape[0]
+        B = y_true.shape[0]
+
+        loss = -np.sum(y_true * np.log(self.probs + 1e-12)) / B
+
         return loss
 
     def backward(self):
-        batch_size = self.y.shape[0]
-        return (self.probs - self.y) / batch_size
+
+        B = self.y_true.shape[0]
+        return (self.probs - self.y_true) / B
     
 class MSE:
     def forward(self, preds, y):
